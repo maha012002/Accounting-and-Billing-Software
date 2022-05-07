@@ -1,0 +1,135 @@
+$(document).ready(function() {
+
+
+    $('#runner').runner({
+
+
+        milliseconds: false
+    }).on('runnerStop', function(eventObject, info) {
+
+      //  alert(info.time);
+
+
+    });
+
+    $('#rstart').click(function() {
+        bootbox.prompt("What is your name?", function(result) {
+            if (result === null) {
+              //  Example.show("Prompt dismissed");
+
+            } else {
+                $('#runner').runner('start');
+            }
+        });
+
+    });
+
+    $('#rstop').click(function() {
+        bootbox.prompt("What is your name?", function(result) {
+            if (result === null) {
+                //  Example.show("Prompt dismissed");
+
+            } else {
+                $('#runner').runner('stop');
+            }
+        });
+
+    });
+
+
+
+
+    $('.i-checks').iCheck({
+        checkboxClass: 'icheckbox_square-green',
+        radioClass: 'iradio_square-green',
+    });
+
+    /* initialize the external events
+     -----------------------------------------------------------------*/
+
+    $('#external-events div.external-event').each(function() {
+
+        // create an Event Object (http://arshaw.com/fullcalendar/docs/event_data/Event_Object/)
+        // it doesn't need to have a start or end
+        var eventObject = {
+            title: $.trim($(this).text()) // use the element's text as the event title
+        };
+
+        // store the Event Object in the DOM element so we can get to it later
+        $(this).data('eventObject', eventObject);
+
+        // make the event draggable using jQuery UI
+        $(this).draggable({
+            zIndex: 999,
+            revert: true,      // will cause the event to go back to its
+            revertDuration: 0  //  original position after the drag
+        });
+
+    });
+
+
+    /* initialize the calendar
+     -----------------------------------------------------------------*/
+    var date = new Date();
+    var d = date.getDate();
+    var m = date.getMonth();
+    var y = date.getFullYear();
+
+    $('#calendar').fullCalendar({
+        header: {
+            left: 'prev,next',
+            center: 'title',
+            right: 'agendaWeek,agendaDay'
+        },
+
+        defaultView: 'agendaWeek',
+
+        droppable: true, // this allows things to be dropped onto the calendar !!!
+        drop: function(date, allDay) { // this function is called when something is dropped
+
+            // retrieve the dropped element's stored Event Object
+            var originalEventObject = $(this).data('eventObject');
+
+            // we need to copy it, so that multiple events don't have a reference to the same object
+            var copiedEventObject = $.extend({}, originalEventObject);
+
+            // assign it the date that was reported
+            copiedEventObject.start = date;
+            copiedEventObject.allDay = allDay;
+
+            // render the event on the calendar
+            // the last `true` argument determines if the event "sticks" (http://arshaw.com/fullcalendar/docs/event_rendering/renderEvent/)
+            $('#calendar').fullCalendar('renderEvent', copiedEventObject, true);
+
+            // is the "remove after drop" checkbox checked?
+            if ($('#drop-remove').is(':checked')) {
+                // if so, remove the element from the "Draggable Events" list
+                $(this).remove();
+            }
+
+        },
+        editable: true,
+        events: {
+            url: '?ng=time-tracking/source',
+            type: 'POST',
+            data: {
+                custom_param1: 'something',
+                custom_param2: 'somethingelse'
+            },
+            error: function() {
+                alert('there was an error while fetching events!');
+            }
+        },
+
+        eventResize: function(event, delta, revertFunc) {
+
+          //  alert(event.title + " end is now " + event.end.format());
+
+
+
+        }
+
+    });
+
+
+});
